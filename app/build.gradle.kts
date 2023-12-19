@@ -3,9 +3,15 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+val OpenWeatherMapApiKey: String by project
+
 android {
     namespace = "com.example.weatherapp"
     compileSdk = 34
+
+    buildFeatures {
+        buildConfig = true
+    }
 
     defaultConfig {
         applicationId = "com.example.weatherapp"
@@ -15,6 +21,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "OpenWeatherMapApiKey", OpenWeatherMapApiKey)
     }
 
     buildTypes {
