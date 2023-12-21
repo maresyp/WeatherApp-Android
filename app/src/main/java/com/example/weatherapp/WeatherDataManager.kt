@@ -74,4 +74,15 @@ class WeatherDataManager {
             null
         }
     }
+
+    /**
+     * Clears all locally saved data.
+     *
+     * @param context The context to use to delete the files.
+     */
+    suspend fun clearLocalData(context: Context) = withContext(Dispatchers.IO) {
+        context.fileList().forEach {
+            context.deleteFile(it)
+        }
+    }
 }
