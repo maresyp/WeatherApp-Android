@@ -9,29 +9,46 @@ import org.json.JSONObject
 class WeatherDataManager {
 
     private val weatherDataProvider = WeatherDataProvider()
+
     /**
-     * Provides weather data for a given city. If the data is already saved locally, it will be
-     * read from a file. Otherwise, it will be downloaded from the OpenWeatherMap API.
+     * Downloads weather data from the OpenWeatherMap API and saves it to a file.
      *
-     * @param query The name of the city to download weather data for.
+     * @param filename Filename to save the data for.
+     * @param query The query to download weather data for.
      * @param context The context to use to save the data.
      * @return A JSONObject containing the weather data, or null if an error occurred.
      */
+    private suspend fun downloadAndSaveData(filename: String, query: String, context: Context): JSONObject? {
+        val data = weatherDataProvider.downloadWeatherData(query)
+        data?.let { saveData(filename, it, context) } // null safe operation (if data is not null)
+        return data
+    }
+
+    /**
+     * Gets weather data for the given query.
+     *
+     * @param query The query to get weather data for.
+     * @param context The context to use to get the data.
+     * @return A JSONObject containing the weather data, or null if an error occurred.
+     */
     suspend fun getData(query: String, context: Context): JSONObject? = withContext(Dispatchers.IO) {
-        // check if file with given query already exists
-        val filename = query.plus(".json")
-        // TODO: get universal city name
+        val filename = "$query.json"
         if (context.fileList().contains(filename)) {
-            println("File with name $filename already exists. Reading data from file.")
-            readData(filename, context)
-            // TODO: check if data is up to date
-        } else {
-            println("File with name $filename does not exist. Downloading data from API.")
-            val data = weatherDataProvider.downloadWeatherData(query)
-            if (data != null) {
-                saveData(filename, data, context)
+            readData(filename, context)?.let { data -> // null safe operation (if data is not null)
+
+                /* get timestamp from saved data and current time */
+                val timestamp = data.getJSONArray("list").getJSONObject(0).getLong("dt")
+                val currentTime = System.currentTimeMillis() / 1000L
+
+                /* if the data is older than 1 hour, download new data */
+                if (currentTime - timestamp > 3600) {
+                    downloadAndSaveData(filename, query, context)
+                } else {
+                    data
+                }
             }
-            data
+        } else {
+            downloadAndSaveData(filename, query, context)
         }
     }
 
