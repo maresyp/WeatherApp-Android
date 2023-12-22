@@ -19,6 +19,6 @@ class MainActivity : FragmentActivity() {
         val viewPager = findViewById<ViewPager2>(R.id.view_pager)
         viewPager.adapter = ViewPagerAdapter(this)
         // Start on the main screen
-        viewPager.setCurrentItem(1, false)
+        viewPager.setCurrentItem(2, false)
     }
 }
