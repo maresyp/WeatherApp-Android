@@ -1,13 +1,16 @@
 package com.example.weatherapp.fragments
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.example.weatherapp.NetworkNotAvailableException
 import com.example.weatherapp.R
 import com.example.weatherapp.WeatherDataManager
 import kotlinx.coroutines.launch
@@ -31,9 +34,17 @@ class MainFragment : Fragment() {
         val searchView = view.findViewById<SearchView>(R.id.search_view)
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
-                // TODO : add code to display weather data for the given query
                 lifecycleScope.launch {
-                    weatherDataManager.getData(query, requireContext())
+                    try {
+                        val data = weatherDataManager.getData(query, requireContext(), false)
+                        // TODO : add code to display weather data for the given query
+                    } catch (e: NetworkNotAvailableException) {
+                        Log.e("MainFragment", "No network connection", e)
+                        Toast.makeText(requireContext(), "No network connection", Toast.LENGTH_SHORT).show()
+                    } catch (e: Exception) {
+                        Log.e("MainFragment", "An error occurred", e)
+                        Toast.makeText(requireContext(), "An error occurred", Toast.LENGTH_SHORT).show()
+                    }
                 }
                 return false
             }
@@ -50,9 +61,8 @@ class MainFragment : Fragment() {
             val weatherDataManager = WeatherDataManager()
             var data: JSONObject?
             lifecycleScope.launch {
-
-                // TODO : this should force reload the data from the API
-                data = weatherDataManager.getData("London", requireContext())
+                val query: String = searchView.query.toString()
+                data = weatherDataManager.getData(query, requireContext(), true)
                 println(data)
             }
             // When the refreshing is done, update the UI
