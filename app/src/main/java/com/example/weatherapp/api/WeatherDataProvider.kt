@@ -1,5 +1,6 @@
 package com.example.weatherapp.api
 
+import android.util.Log
 import com.example.weatherapp.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -32,7 +33,7 @@ class WeatherDataProvider {
                 }
             }.let { responseBody -> JSONObject(responseBody) }
         } catch (e: Exception) {
-            println("Error: ${e.message}")
+            Log.e("WeatherDataProvider", "An error occurred", e)
             null
         }
     }
