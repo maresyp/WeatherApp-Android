@@ -125,6 +125,7 @@ class WeatherDataManager {
      */
     suspend fun clearLocalData(context: Context) = withContext(Dispatchers.IO) {
         context.fileList().forEach {
+            Log.d("WeatherDataManager", "Deleting file $it")
             context.deleteFile(it)
         }
     }

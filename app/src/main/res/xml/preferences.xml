@@ -1,0 +1,13 @@
+<PreferenceScreen
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <SwitchPreferenceCompat
+        app:key="units"
+        app:title="Use Celsius"/>
+
+    <Preference
+        app:key="clearFiles"
+        app:title="Clear local data"
+        app:summary="Clears all .json files with weather data saved on device"/>
+
+</PreferenceScreen>
