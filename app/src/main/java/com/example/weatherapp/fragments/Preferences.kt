@@ -10,6 +10,7 @@ import com.example.weatherapp.R
 import com.example.weatherapp.WeatherDataManager
 import kotlinx.coroutines.launch
 
+// https://developer.android.com/develop/ui/views/components/settings?hl=en
 class Preferences : PreferenceFragmentCompat() {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences, rootKey)
