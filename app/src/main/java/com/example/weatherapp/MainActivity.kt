@@ -16,7 +16,7 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val viewPager = findViewById<ViewPager2>(R.id.view_pager)
+        viewPager = findViewById(R.id.view_pager)
         viewPager.adapter = ViewPagerAdapter(this)
         // Start on the main screen
         viewPager.setCurrentItem(2, false)

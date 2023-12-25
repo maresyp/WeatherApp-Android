@@ -1,6 +1,7 @@
 package com.example.weatherapp.fragments
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,5 +14,12 @@ class RightFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         return inflater.inflate(R.layout.fragment_right, container, false)
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        Log.d("RightFragment", "onResume called")
+        // TODO get weather data and update view
     }
 }

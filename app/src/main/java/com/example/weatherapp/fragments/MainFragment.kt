@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
@@ -37,20 +38,21 @@ class MainFragment : Fragment() {
                 lifecycleScope.launch {
                     try {
                         val data = weatherDataManager.getData(query, requireContext(), false)
-                        // TODO : add code to display weather data for the given query
+                        updateWeatherData(data)
                     } catch (e: NetworkNotAvailableException) {
                         Log.e("MainFragment", "No network connection", e)
                         Toast.makeText(requireContext(), "No network connection", Toast.LENGTH_SHORT).show()
                     } catch (e: Exception) {
-                        Log.e("MainFragment", "An error occurred", e)
-                        Toast.makeText(requireContext(), "An error occurred", Toast.LENGTH_SHORT).show()
+                        Log.e("MainFragment", "Unable to update weather data", e)
+                        Toast.makeText(requireContext(), "Unable to update weather data", Toast.LENGTH_SHORT).show()
                     }
                 }
-                return false
+                return true
             }
 
             override fun onQueryTextChange(newText: String): Boolean {
                 // Handle search query text change
+                // TODO : add autocomplete
                 return false
             }
         })
@@ -59,14 +61,27 @@ class MainFragment : Fragment() {
         val swipeRefreshLayout = view.findViewById<SwipeRefreshLayout>(R.id.swipe_refresh_layout)
         swipeRefreshLayout.setOnRefreshListener {
             val weatherDataManager = WeatherDataManager()
-            var data: JSONObject?
+
             lifecycleScope.launch {
                 val query: String = searchView.query.toString()
-                data = weatherDataManager.getData(query, requireContext(), true)
-                println(data)
+                val data = weatherDataManager.getData(query, requireContext(), true)
             }
+
             // When the refreshing is done, update the UI
             swipeRefreshLayout.isRefreshing = false
         }
+    }
+
+    private fun updateWeatherData(newData: JSONObject) {
+        val textView: TextView? = view?.findViewById(R.id.my_text_view)
+        val firstInfo = newData.getJSONArray("list").getJSONObject(0).getString("main")
+        textView?.text = firstInfo
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        Log.d("MainFragment", "onResume called")
+        // TODO get weather data and update view
     }
 }
