@@ -28,6 +28,7 @@ class Preferences : PreferenceFragmentCompat() {
                 val weatherDataManager = WeatherDataManager()
                 lifecycleScope.launch {
                     weatherDataManager.clearLocalData(requireContext())
+                    weatherDataManager.clearCurrentLocationFromPreferences(requireContext())
                 }
                 true // Return true if the click is handled.
             }
