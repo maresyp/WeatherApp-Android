@@ -15,7 +15,6 @@ import com.example.weatherapp.NetworkNotAvailableException
 import com.example.weatherapp.R
 import com.example.weatherapp.WeatherDataManager
 import kotlinx.coroutines.launch
-import org.json.JSONObject
 
 class MainFragment : Fragment() {
 
@@ -37,8 +36,8 @@ class MainFragment : Fragment() {
             override fun onQueryTextSubmit(query: String): Boolean {
                 lifecycleScope.launch {
                     try {
-                        val data = weatherDataManager.getData(query, requireContext(), false)
-                        updateWeatherData(data)
+                        weatherDataManager.getData(query, requireContext(), false)
+                        onResume()
                     } catch (e: NetworkNotAvailableException) {
                         Log.e("MainFragment", "No network connection", e)
                         Toast.makeText(requireContext(), "No network connection", Toast.LENGTH_SHORT).show()
@@ -60,11 +59,28 @@ class MainFragment : Fragment() {
         /* Set up the SwipeRefreshLayout */
         val swipeRefreshLayout = view.findViewById<SwipeRefreshLayout>(R.id.swipe_refresh_layout)
         swipeRefreshLayout.setOnRefreshListener {
-            val weatherDataManager = WeatherDataManager()
+            val currentLocationData = weatherDataManager.getCurrentLocationFromPreferences(requireContext())
+            if (currentLocationData == null) {
+                Toast.makeText(requireContext(), "No data to refresh", Toast.LENGTH_SHORT).show()
+                swipeRefreshLayout.isRefreshing = false
+                return@setOnRefreshListener
+            }
+
+            // Retrieve the city name from the old data
+            val query = currentLocationData.getJSONObject("city").getString("name")
 
             lifecycleScope.launch {
-                val query: String = searchView.query.toString()
-                val data = weatherDataManager.getData(query, requireContext(), true)
+
+                try {
+                    weatherDataManager.getData(query, requireContext(), false)
+                    onResume()
+                } catch (e: NetworkNotAvailableException) {
+                    Log.e("MainFragment", "No network connection", e)
+                    Toast.makeText(requireContext(), "No network connection", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Log.e("MainFragment", "Unable to update weather data", e)
+                    Toast.makeText(requireContext(), "Unable to update weather data", Toast.LENGTH_SHORT).show()
+                }
             }
 
             // When the refreshing is done, update the UI
@@ -72,16 +88,19 @@ class MainFragment : Fragment() {
         }
     }
 
-    private fun updateWeatherData(newData: JSONObject) {
-        val textView: TextView? = view?.findViewById(R.id.my_text_view)
-        val firstInfo = newData.getJSONArray("list").getJSONObject(0).getString("main")
-        textView?.text = firstInfo
-    }
-
     override fun onResume() {
         super.onResume()
 
         Log.d("MainFragment", "onResume called")
-        // TODO get weather data and update view
+        weatherDataManager.getCurrentLocationFromPreferences(requireContext()).let {
+            if (it == null) {
+                Log.d("MainFragment", "No data to display")
+                return@let
+            }
+
+            val textView: TextView? = view?.findViewById(R.id.my_text_view)
+            val firstInfo = it.getJSONArray("list").getJSONObject(0).getString("main")
+            textView?.text = firstInfo
+        }
     }
 }
