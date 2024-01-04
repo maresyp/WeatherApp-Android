@@ -16,14 +16,6 @@ class WeatherDataManager {
 
     private val weatherDataProvider = WeatherDataProvider()
 
-    /**
-     * Downloads weather data from the OpenWeatherMap API and saves it to a file.
-     *
-     * @param filename Filename to save the data for.
-     * @param query The query to download weather data for.
-     * @param context The context to use to save the data.
-     * @return A JSONObject containing the weather data, or null if an error occurred.
-     */
     private suspend fun downloadAndSaveData(filename: String, query: String, context: Context): JSONObject {
         val data = weatherDataProvider.downloadWeatherData(query)
         data.let {
@@ -34,25 +26,12 @@ class WeatherDataManager {
         return data
     }
 
-    /**
-     * Checks if the device is connected to the internet.
-     *
-     * @param context The context to use to check the connection.
-     * @return true if the device is connected to the internet, false otherwise.
-     */
     private fun isNetworkAvailable(context: Context): Boolean {
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val networkInfo = connectivityManager.activeNetworkInfo
         return networkInfo != null && networkInfo.isConnected
     }
 
-    /**
-     * Gets weather data for the given query.
-     *
-     * @param query The query to get weather data for.
-     * @param context The context to use to get the data.
-     * @return A JSONObject containing the weather data, or null if an error occurred.
-     */
     @Throws(NetworkNotAvailableException::class, IOException::class, JSONException::class)
     suspend fun getData(query: String, context: Context, forceDownload: Boolean): JSONObject = withContext(Dispatchers.IO) {
         if (!isNetworkAvailable(context)) {
@@ -62,7 +41,7 @@ class WeatherDataManager {
         val filename = "${query.lowercase()}.json"
         if (context.fileList().contains(filename) && !forceDownload) {
             Log.d("WeatherDataManager", "Reading data from $filename")
-            readData(filename, context).let { data -> // null safe operation (if data is not null)
+            readData(filename, context).let { data ->
 
                 /* get timestamp from saved data and current time */
                 val timestamp = data.getJSONArray("list").getJSONObject(0).getLong("dt")
@@ -80,16 +59,11 @@ class WeatherDataManager {
             Log.d("WeatherDataManager", "Downloading data for $query")
             downloadAndSaveData(filename, query, context)
         }
+    }.let {
+        // save current location to preferences for later use
+        saveCurrentLocationToPreferences(it, context)
     }
 
-    /**
-     * Saves the given data to a file.
-     *
-     * @param filename Filename to save the data for.
-     * @param data The data to save.
-     * @param context The context to use to save the data.
-     * @return bytes written if the data was saved successfully, 0 otherwise.
-     */
     @Throws(IOException::class)
     private suspend fun saveData(filename: String, data: JSONObject, context: Context) = withContext(Dispatchers.IO) {
         val byteArray = data.toString().toByteArray()
@@ -98,13 +72,6 @@ class WeatherDataManager {
         }
     }
 
-    /**
-     * Opens a file and reads its contents into a JSONObject.
-     *
-     * @param filename The name of the file to read.
-     * @param context The context to use to open the file.
-     * @return A JSONObject containing the weather data, or null if an error occurred.
-     */
     @Throws(IOException::class, JSONException::class)
     private suspend fun readData(filename: String, context: Context): JSONObject = withContext(Dispatchers.IO) {
         context.openFileInput(filename).bufferedReader().use {
@@ -112,11 +79,6 @@ class WeatherDataManager {
         }
     }
 
-    /**
-     * Clears all locally saved data.
-     *
-     * @param context The context to use to delete the files.
-     */
     @Throws(IOException::class)
     suspend fun clearLocalData(context: Context) = withContext(Dispatchers.IO) {
         context.fileList().forEach {
@@ -125,6 +87,33 @@ class WeatherDataManager {
                 Log.e("WeatherDataManager", "Error deleting file $it")
                 throw IOException("Error deleting file $it")
             }
+        }
+    }
+
+    private fun saveCurrentLocationToPreferences(data: JSONObject, context: Context): JSONObject {
+        val sharedPreferences = context.getSharedPreferences("WeatherApp", Context.MODE_PRIVATE)
+        with (sharedPreferences.edit()) {
+            putString("location", data.toString())
+            apply()
+        }
+        return data
+    }
+
+    fun getCurrentLocationFromPreferences(context: Context): JSONObject? {
+        val sharedPreferences = context.getSharedPreferences("WeatherApp", Context.MODE_PRIVATE)
+        val currentLocationData = sharedPreferences.getString("location", null)
+        return if (currentLocationData != null) {
+            JSONObject(currentLocationData)
+        } else {
+            null
+        }
+    }
+
+    fun clearCurrentLocationFromPreferences(context: Context) {
+        val sharedPreferences = context.getSharedPreferences("WeatherApp", Context.MODE_PRIVATE)
+        with (sharedPreferences.edit()) {
+            remove("location")
+            apply()
         }
     }
 }
