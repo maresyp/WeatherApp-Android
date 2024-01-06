@@ -9,6 +9,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
+import kotlin.math.abs
 
 class NetworkNotAvailableException(message: String) : Exception(message)
 
@@ -17,7 +18,7 @@ class WeatherDataManager {
     private val weatherDataProvider = WeatherDataProvider()
 
     private suspend fun downloadAndSaveData(filename: String, query: String, context: Context): JSONObject {
-        val data = weatherDataProvider.downloadWeatherData(query)
+        val data = weatherDataProvider.downloadWeatherData(query, context)
         data.let {
             saveData(filename, it, context)
             Log.d("WeatherDataManager", "Saved data to $filename")
@@ -48,10 +49,15 @@ class WeatherDataManager {
                 val currentTime = System.currentTimeMillis() / 1000L // convert to seconds
 
                 /* if the data is older than 1 hour, download new data */
-                if (currentTime - timestamp > 3600) {
+                // TODO : make sure it works correctly
+                val timezone = data.getJSONObject("city").getString("timezone")
+                val timeDelta = abs(currentTime - timestamp + timezone.toLong())
+
+                if (timeDelta > 3600) {
                     Log.d("WeatherDataManager", "Data is older than 1 hour, downloading new data for $query")
                     downloadAndSaveData(filename, query, context)
                 } else {
+                    Log.d("WeatherDataManager", "Data is not older than 1 hour ($timeDelta seconds)")
                     data
                 }
             }
@@ -115,5 +121,18 @@ class WeatherDataManager {
             remove("location")
             apply()
         }
+    }
+
+    fun setUnits(value: String, context: Context) {
+        val sharedPreferences = context.getSharedPreferences("WeatherApp", Context.MODE_PRIVATE)
+        with (sharedPreferences.edit()) {
+            putString("units", value)
+            apply()
+        }
+    }
+
+    fun getUnits(context: Context): String {
+        val sharedPreferences = context.getSharedPreferences("WeatherApp", Context.MODE_PRIVATE)
+        return sharedPreferences.getString("units", "metric") ?: "metric"
     }
 }
