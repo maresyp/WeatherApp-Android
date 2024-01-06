@@ -1,5 +1,6 @@
 package com.example.weatherapp.fragments
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -15,6 +16,10 @@ import com.example.weatherapp.NetworkNotAvailableException
 import com.example.weatherapp.R
 import com.example.weatherapp.WeatherDataManager
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 class MainFragment : Fragment() {
 
@@ -37,7 +42,6 @@ class MainFragment : Fragment() {
                 lifecycleScope.launch {
                     try {
                         weatherDataManager.getData(query, requireContext(), false)
-                        onResume()
                     } catch (e: NetworkNotAvailableException) {
                         Log.e("MainFragment", "No network connection", e)
                         Toast.makeText(requireContext(), "No network connection", Toast.LENGTH_SHORT).show()
@@ -46,6 +50,10 @@ class MainFragment : Fragment() {
                         Toast.makeText(requireContext(), "Unable to update weather data", Toast.LENGTH_SHORT).show()
                     }
                 }
+
+                // Update the UI
+                onResume()
+
                 return true
             }
 
@@ -70,10 +78,8 @@ class MainFragment : Fragment() {
             val query = currentLocationData.getJSONObject("city").getString("name")
 
             lifecycleScope.launch {
-
                 try {
-                    weatherDataManager.getData(query, requireContext(), false)
-                    onResume()
+                    weatherDataManager.getData(query, requireContext(), true)
                 } catch (e: NetworkNotAvailableException) {
                     Log.e("MainFragment", "No network connection", e)
                     Toast.makeText(requireContext(), "No network connection", Toast.LENGTH_SHORT).show()
@@ -83,11 +89,15 @@ class MainFragment : Fragment() {
                 }
             }
 
+            // Update the UI
+            onResume()
+
             // When the refreshing is done, update the UI
             swipeRefreshLayout.isRefreshing = false
         }
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onResume() {
         super.onResume()
 
@@ -98,9 +108,41 @@ class MainFragment : Fragment() {
                 return@let
             }
 
-            val textView: TextView? = view?.findViewById(R.id.my_text_view)
-            val firstInfo = it.getJSONArray("list").getJSONObject(0).getString("main")
-            textView?.text = firstInfo
+            val cityTextView: TextView? = view?.findViewById(R.id.city)
+            val longitudeTextView: TextView? = view?.findViewById(R.id.longitude)
+            val latitudeTextView: TextView? = view?.findViewById(R.id.latitude)
+            val timeTextView: TextView? = view?.findViewById(R.id.time)
+            val temperatureTextView: TextView? = view?.findViewById(R.id.temperature)
+            val pressureTextView: TextView? = view?.findViewById(R.id.pressure)
+            val descriptionTextView: TextView? = view?.findViewById(R.id.description)
+
+
+            val cityInfo = it.getJSONObject("city").getString("name")
+            cityTextView?.text = "City: $cityInfo"
+
+            val longitudeInfo = it.getJSONObject("city").getJSONObject("coord").getString("lon")
+            longitudeTextView?.text = "Longitude: $longitudeInfo"
+
+            val latitudeInfo = it.getJSONObject("city").getJSONObject("coord").getString("lat")
+            latitudeTextView?.text = "Latitude: $latitudeInfo"
+
+            val timeInfo = it.getJSONArray("list").getJSONObject(0).getString("dt")
+            val dateTime = Date(timeInfo.toLong() * 1000L)
+            val format = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+            format.timeZone = TimeZone.getTimeZone("UTC")
+            format.format(dateTime)
+
+            timeTextView?.text = "Time: $dateTime"
+
+            val temperatureInfo = it.getJSONArray("list").getJSONObject(0).getJSONObject("main").getString("temp")
+            temperatureTextView?.text = "Temperature: $temperatureInfo"
+
+            val pressureInfo = it.getJSONArray("list").getJSONObject(0).getJSONObject("main").getString("pressure")
+            pressureTextView?.text = "Pressure: $pressureInfo"
+
+            val descriptionInfo = it.getJSONArray("list").getJSONObject(0).getJSONArray("weather").getJSONObject(0).getString("description")
+            descriptionTextView?.text = "Description: $descriptionInfo"
+
         }
     }
 }
