@@ -28,7 +28,7 @@ class Preferences : PreferenceFragmentCompat() {
                     "imperial"
                 }
 
-                Log.d("Preferences", "Changing units: $unit")
+                Log.d("Preferences", "Changing units to: $unit")
                 weatherDataManager.setUnits(unit, requireContext())
                 weatherDataManager.getCurrentLocationFromPreferences(requireContext())?.let {
                     val query = it.getJSONObject("city").getString("name")
@@ -36,11 +36,11 @@ class Preferences : PreferenceFragmentCompat() {
                         try {
                             weatherDataManager.getData(query, requireContext(), true)
                         } catch (e: NetworkNotAvailableException) {
-                            Log.e("Preferences", "No network connection", e)
-                            Toast.makeText(requireContext(), "No network connection", Toast.LENGTH_SHORT).show()
+                            Log.e("Preferences", "No network connection, units wont be updated", e)
+                            Toast.makeText(requireContext(), "No network connection, units wont be updated", Toast.LENGTH_SHORT).show()
                         } catch (e: Exception) {
-                            Log.e("Preferences", "Unable to update weather data", e)
-                            Toast.makeText(requireContext(), "Unable to update weather data", Toast.LENGTH_SHORT).show()
+                            Log.e("Preferences", "Unable to update weather data after units change", e)
+                            Toast.makeText(requireContext(), "Unable to update weather data after units change", Toast.LENGTH_SHORT).show()
                         }
                     }
                 }

@@ -11,7 +11,6 @@ import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.weatherapp.NetworkNotAvailableException
 import com.example.weatherapp.R
 import com.example.weatherapp.WeatherDataManager
@@ -23,7 +22,7 @@ import java.util.TimeZone
 
 class MainFragment : Fragment() {
 
-    var weatherDataManager = WeatherDataManager()
+    private var weatherDataManager = WeatherDataManager()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -44,10 +43,10 @@ class MainFragment : Fragment() {
                         weatherDataManager.getData(query, requireContext(), false)
                     } catch (e: NetworkNotAvailableException) {
                         Log.e("MainFragment", "No network connection", e)
-                        Toast.makeText(requireContext(), "No network connection", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "No network connection", Toast.LENGTH_SHORT).show()
                     } catch (e: Exception) {
                         Log.e("MainFragment", "Unable to update weather data", e)
-                        Toast.makeText(requireContext(), "Unable to update weather data", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Unable to update weather data", Toast.LENGTH_SHORT).show()
                     }
                 }
 
@@ -63,38 +62,6 @@ class MainFragment : Fragment() {
                 return false
             }
         })
-
-        /* Set up the SwipeRefreshLayout */
-        val swipeRefreshLayout = view.findViewById<SwipeRefreshLayout>(R.id.swipe_refresh_layout)
-        swipeRefreshLayout.setOnRefreshListener {
-            val currentLocationData = weatherDataManager.getCurrentLocationFromPreferences(requireContext())
-            if (currentLocationData == null) {
-                Toast.makeText(requireContext(), "No data to refresh", Toast.LENGTH_SHORT).show()
-                swipeRefreshLayout.isRefreshing = false
-                return@setOnRefreshListener
-            }
-
-            // Retrieve the city name from the old data
-            val query = currentLocationData.getJSONObject("city").getString("name")
-
-            lifecycleScope.launch {
-                try {
-                    weatherDataManager.getData(query, requireContext(), true)
-                } catch (e: NetworkNotAvailableException) {
-                    Log.e("MainFragment", "No network connection", e)
-                    Toast.makeText(requireContext(), "No network connection", Toast.LENGTH_SHORT).show()
-                } catch (e: Exception) {
-                    Log.e("MainFragment", "Unable to update weather data", e)
-                    Toast.makeText(requireContext(), "Unable to update weather data", Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            // Update the UI
-            onResume()
-
-            // When the refreshing is done, update the UI
-            swipeRefreshLayout.isRefreshing = false
-        }
     }
 
     @SuppressLint("SetTextI18n")
