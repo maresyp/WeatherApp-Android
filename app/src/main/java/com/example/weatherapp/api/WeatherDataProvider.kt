@@ -1,6 +1,9 @@
 package com.example.weatherapp.api
 
+import android.content.Context
+import android.util.Log
 import com.example.weatherapp.BuildConfig
+import com.example.weatherapp.WeatherDataManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONException
@@ -10,17 +13,14 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 class WeatherDataProvider {
-    /**
-     * Downloads weather data from the OpenWeatherMap API.
-     *
-     * @param cityName The name of the city to download weather data for.
-     * @return A JSONObject containing the weather data, or null if an error occurred.
-     */
-    @Throws(IOException::class, JSONException::class)
-    suspend fun downloadWeatherData(cityName: String): JSONObject = withContext(Dispatchers.IO) {
-        val apiKey: String = BuildConfig.OpenWeatherMapApiKey
-        val url = URL("https://api.openweathermap.org/data/2.5/forecast?q=$cityName&appid=$apiKey")
 
+    @Throws(IOException::class, JSONException::class)
+    suspend fun downloadWeatherData(cityName: String, context: Context): JSONObject = withContext(Dispatchers.IO) {
+        val apiKey: String = BuildConfig.OpenWeatherMapApiKey
+        val units = WeatherDataManager().getUnits(context)
+
+        val url = URL("https://api.openweathermap.org/data/2.5/forecast?q=$cityName&appid=$apiKey&units=$units")
+        Log.d("WeatherDataProvider", "Downloading data from $url")
         with(url.openConnection() as HttpURLConnection) {
             requestMethod = "GET"
 
