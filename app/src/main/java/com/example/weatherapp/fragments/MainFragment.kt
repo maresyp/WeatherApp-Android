@@ -1,6 +1,7 @@
 package com.example.weatherapp.fragments
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -11,9 +12,9 @@ import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import com.example.weatherapp.NetworkNotAvailableException
 import com.example.weatherapp.R
-import com.example.weatherapp.WeatherDataManager
+import com.example.weatherapp.data.NetworkNotAvailableException
+import com.example.weatherapp.data.WeatherDataManager
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -28,6 +29,14 @@ class MainFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
+        /* Try to refresh data on startup */
+        val currentLocationData = weatherDataManager.getCurrentLocationFromPreferences(requireContext())
+        if (currentLocationData != null) {
+            val query = currentLocationData.getJSONObject("city").getString("name")
+            getDataWithErrorHandling(query, requireContext(), false)
+        }
+
         return inflater.inflate(R.layout.fragment_main, container, false)
     }
 
@@ -38,17 +47,7 @@ class MainFragment : Fragment() {
         val searchView = view.findViewById<SearchView>(R.id.search_view)
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
-                lifecycleScope.launch {
-                    try {
-                        weatherDataManager.getData(query, requireContext(), false)
-                    } catch (e: NetworkNotAvailableException) {
-                        Log.e("MainFragment", "No network connection", e)
-                        Toast.makeText(context, "No network connection", Toast.LENGTH_SHORT).show()
-                    } catch (e: Exception) {
-                        Log.e("MainFragment", "Unable to update weather data", e)
-                        Toast.makeText(context, "Unable to update weather data", Toast.LENGTH_SHORT).show()
-                    }
-                }
+                getDataWithErrorHandling(query, requireContext(), false)
 
                 // Update the UI
                 onResume()
@@ -110,6 +109,20 @@ class MainFragment : Fragment() {
             val descriptionInfo = it.getJSONArray("list").getJSONObject(0).getJSONArray("weather").getJSONObject(0).getString("description")
             descriptionTextView?.text = "Description: $descriptionInfo"
 
+        }
+    }
+
+    private fun getDataWithErrorHandling(query: String, context: Context, forceDownload: Boolean) {
+        lifecycleScope.launch {
+            try {
+                weatherDataManager.getData(query, context, forceDownload)
+            } catch (e: NetworkNotAvailableException) {
+                Log.e("MainFragment", "No network connection", e)
+                Toast.makeText(context, "No network connection", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Log.e("MainFragment", "Unable to update weather data", e)
+                Toast.makeText(context, "Unable to update weather data", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 }

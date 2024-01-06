@@ -7,6 +7,8 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.viewpager2.widget.ViewPager2
+import com.example.weatherapp.data.NetworkNotAvailableException
+import com.example.weatherapp.data.WeatherDataManager
 import com.example.weatherapp.fragments.ViewPagerAdapter
 import kotlinx.coroutines.launch
 

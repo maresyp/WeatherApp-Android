@@ -3,7 +3,7 @@ package com.example.weatherapp.api
 import android.content.Context
 import android.util.Log
 import com.example.weatherapp.BuildConfig
-import com.example.weatherapp.WeatherDataManager
+import com.example.weatherapp.data.WeatherDataManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONException

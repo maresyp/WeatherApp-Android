@@ -7,9 +7,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreferenceCompat
-import com.example.weatherapp.NetworkNotAvailableException
 import com.example.weatherapp.R
-import com.example.weatherapp.WeatherDataManager
+import com.example.weatherapp.data.NetworkNotAvailableException
+import com.example.weatherapp.data.WeatherDataManager
 import kotlinx.coroutines.launch
 
 // https://developer.android.com/develop/ui/views/components/settings?hl=en
