@@ -8,6 +8,6 @@
     <Preference
         app:key="clearFiles"
         app:title="Clear local data"
-        app:summary="Clears all .json files with weather data saved on device"/>
+        app:summary="Clears all .json and Shared Preferences files with weather data saved on device"/>
 
 </PreferenceScreen>
