@@ -30,13 +30,6 @@ class MainFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
 
-        /* Try to refresh data on startup */
-        val currentLocationData = weatherDataManager.getCurrentLocationFromPreferences(requireContext())
-        if (currentLocationData != null) {
-            val query = currentLocationData.getJSONObject("city").getString("name")
-            getDataWithErrorHandling(query, requireContext(), false)
-        }
-
         return inflater.inflate(R.layout.fragment_main, container, false)
     }
 
@@ -61,6 +54,14 @@ class MainFragment : Fragment() {
                 return false
             }
         })
+
+        /* Try to refresh data on startup */
+        val currentLocationData = weatherDataManager.getCurrentLocationFromPreferences(requireContext())
+        if (currentLocationData != null) {
+            val query = currentLocationData.getJSONObject("city").getString("name")
+            getDataWithErrorHandling(query, requireContext(), false)
+            onResume()
+        }
     }
 
     @SuppressLint("SetTextI18n")
