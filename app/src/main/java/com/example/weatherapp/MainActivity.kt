@@ -4,10 +4,12 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.viewpager2.widget.ViewPager2
 import com.example.weatherapp.data.NetworkNotAvailableException
+import com.example.weatherapp.data.SharedViewModel
 import com.example.weatherapp.data.WeatherDataManager
 import com.example.weatherapp.fragments.ViewPagerAdapter
 import kotlinx.coroutines.launch
@@ -20,6 +22,7 @@ class MainActivity : FragmentActivity() {
      */
     private lateinit var viewPager: ViewPager2
     private var weatherDataManager = WeatherDataManager()
+    private lateinit var sharedViewModel: SharedViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,6 +33,9 @@ class MainActivity : FragmentActivity() {
 
         // Start on the main screen
         viewPager.setCurrentItem(2, false)
+
+        // Get the shared view model for notifications
+        sharedViewModel = ViewModelProvider(this)[SharedViewModel::class.java]
 
         /* Set up the SwipeRefreshLayout */
         val swipeRefreshLayout = findViewById<SwipeRefreshLayout>(R.id.swipe_refresh_layout)
@@ -46,7 +52,7 @@ class MainActivity : FragmentActivity() {
 
             lifecycleScope.launch {
                 try {
-                    weatherDataManager.getData(query, this@MainActivity, true)
+                    weatherDataManager.getDataWithNotification(query, this@MainActivity, true, sharedViewModel)
                 } catch (e: NetworkNotAvailableException) {
                     Log.e("MainFragment", "No network connection", e)
                     Toast.makeText(this@MainActivity, "No network connection", Toast.LENGTH_SHORT).show()
@@ -55,9 +61,6 @@ class MainActivity : FragmentActivity() {
                     Toast.makeText(this@MainActivity, "Unable to update weather data", Toast.LENGTH_SHORT).show()
                 }
             }
-
-            // Update the UI
-            onResume()
 
             // When the refreshing is done, update the UI
             swipeRefreshLayout.isRefreshing = false

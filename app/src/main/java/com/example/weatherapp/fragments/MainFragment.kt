@@ -11,9 +11,12 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.example.weatherapp.R
 import com.example.weatherapp.data.NetworkNotAvailableException
+import com.example.weatherapp.data.SharedViewModel
 import com.example.weatherapp.data.WeatherDataManager
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -24,6 +27,9 @@ import java.util.TimeZone
 class MainFragment : Fragment() {
 
     private var weatherDataManager = WeatherDataManager()
+    // by activityViewModels() is a delegate property that gets the view model associated with the activity
+    // https://developer.android.com/topic/libraries/architecture/viewmodel#sharing
+    private val sharedViewModel: SharedViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -41,10 +47,6 @@ class MainFragment : Fragment() {
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
                 getDataWithErrorHandling(query, requireContext(), false)
-
-                // Update the UI
-                onResume()
-
                 return true
             }
 
@@ -55,12 +57,17 @@ class MainFragment : Fragment() {
             }
         })
 
+        /* Set up the notification */
+        sharedViewModel.refreshEvent.observe(viewLifecycleOwner, Observer {
+            Log.d("MainFragment", "Notification received")
+            onResume()
+        })
+
         /* Try to refresh data on startup */
         val currentLocationData = weatherDataManager.getCurrentLocationFromPreferences(requireContext())
         if (currentLocationData != null) {
             val query = currentLocationData.getJSONObject("city").getString("name")
             getDataWithErrorHandling(query, requireContext(), false)
-            onResume()
         }
     }
 
@@ -116,7 +123,7 @@ class MainFragment : Fragment() {
     private fun getDataWithErrorHandling(query: String, context: Context, forceDownload: Boolean) {
         lifecycleScope.launch {
             try {
-                weatherDataManager.getData(query, context, forceDownload)
+                weatherDataManager.getDataWithNotification(query, context, forceDownload, sharedViewModel)
             } catch (e: NetworkNotAvailableException) {
                 Log.e("MainFragment", "No network connection", e)
                 Toast.makeText(context, "No network connection", Toast.LENGTH_SHORT).show()

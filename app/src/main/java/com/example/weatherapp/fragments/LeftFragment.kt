@@ -8,12 +8,16 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Observer
 import com.example.weatherapp.R
+import com.example.weatherapp.data.SharedViewModel
 import com.example.weatherapp.data.WeatherDataManager
 
 class LeftFragment : Fragment() {
 
     private val weatherDataManager = WeatherDataManager()
+    private val sharedViewModel: SharedViewModel by activityViewModels()
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -21,11 +25,21 @@ class LeftFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_left, container, false)
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        /* Set up the notification */
+        sharedViewModel.refreshEvent.observe(viewLifecycleOwner, Observer {
+            Log.d("LeftFragment", "Notification received")
+            onResume()
+        })
+    }
+
     @SuppressLint("SetTextI18n")
     override fun onResume() {
         super.onResume()
 
-        Log.d("MainFragment", "onResume called")
+        Log.d("LeftFragment", "onResume called")
         weatherDataManager.getCurrentLocationFromPreferences(requireContext()).let {
             if (it == null) {
                 Log.d("MainFragment", "No data to display")

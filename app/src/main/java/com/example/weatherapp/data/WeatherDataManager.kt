@@ -13,7 +13,7 @@ import kotlin.math.abs
 
 class NetworkNotAvailableException(message: String) : Exception(message)
 
-class WeatherDataManager {
+class WeatherDataManager() {
 
     private val weatherDataProvider = WeatherDataProvider()
 
@@ -31,6 +31,13 @@ class WeatherDataManager {
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val networkInfo = connectivityManager.activeNetworkInfo
         return networkInfo != null && networkInfo.isConnected
+    }
+
+    @Throws(NetworkNotAvailableException::class, IOException::class, JSONException::class)
+    suspend fun getDataWithNotification(query: String, context: Context, forceDownload: Boolean, sharedViewModel: SharedViewModel): JSONObject {
+        val data = getData(query, context, forceDownload)
+        sharedViewModel.refresh()
+        return data
     }
 
     @Throws(NetworkNotAvailableException::class, IOException::class, JSONException::class)
@@ -67,6 +74,7 @@ class WeatherDataManager {
         }
     }.let {
         // save current location to preferences for later use
+        Log.d("WeatherDataManager", "Saving current location to preferences")
         saveCurrentLocationToPreferences(it, context)
     }
 
