@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
@@ -89,7 +90,7 @@ class MainFragment : Fragment() {
             val temperatureTextView: TextView? = view?.findViewById(R.id.temperature)
             val pressureTextView: TextView? = view?.findViewById(R.id.pressure)
             val descriptionTextView: TextView? = view?.findViewById(R.id.description)
-
+            val weatherIcon: ImageView? = view?.findViewById(R.id.weather_icon)
 
             val cityInfo = it.getJSONObject("city").getString("name")
             cityTextView?.text = "City: $cityInfo"
@@ -109,13 +110,19 @@ class MainFragment : Fragment() {
             timeTextView?.text = "Time: $dateTime"
 
             val temperatureInfo = it.getJSONArray("list").getJSONObject(0).getJSONObject("main").getString("temp")
-            temperatureTextView?.text = "Temperature: $temperatureInfo"
+            var temperatureUnit = weatherDataManager.getUnits(requireContext())
+            temperatureUnit = if (temperatureUnit == "metric") "°C" else "°F"
+            temperatureTextView?.text = "Temperature: $temperatureInfo $temperatureUnit"
 
             val pressureInfo = it.getJSONArray("list").getJSONObject(0).getJSONObject("main").getString("pressure")
             pressureTextView?.text = "Pressure: $pressureInfo"
 
             val descriptionInfo = it.getJSONArray("list").getJSONObject(0).getJSONArray("weather").getJSONObject(0).getString("description")
             descriptionTextView?.text = "Description: $descriptionInfo"
+
+            val iconInfo = it.getJSONArray("list").getJSONObject(0).getJSONArray("weather").getJSONObject(0).getString("icon")
+            val iconId = resources.getIdentifier("com.example.weatherapp:drawable/ic_$iconInfo", null, null)
+            weatherIcon?.setImageResource(iconId)
 
         }
     }

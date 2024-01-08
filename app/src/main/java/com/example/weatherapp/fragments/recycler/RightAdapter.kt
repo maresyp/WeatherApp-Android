@@ -4,6 +4,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.weatherapp.R
@@ -24,11 +25,13 @@ class RightAdapter : RecyclerView.Adapter<RightAdapter.ViewHolder>() {
         val itemTemp: TextView
         val itemPressure: TextView
         val itemDescription: TextView
+        val itemIcon: ImageView
         init {
             itemTime = view.findViewById(R.id.item_time_text_view)
             itemTemp = view.findViewById(R.id.item_temperature_text_view)
             itemPressure = view.findViewById(R.id.item_pressure_text_view)
             itemDescription = view.findViewById(R.id.item_element_desc_text_view)
+            itemIcon = view.findViewById(R.id.item_element_image)
         }
     }
 
@@ -55,13 +58,19 @@ class RightAdapter : RecyclerView.Adapter<RightAdapter.ViewHolder>() {
             viewHolder.itemTime.text = "Time: $dateTime"
 
             val temperatureInfo = it.getJSONArray("list").getJSONObject(position).getJSONObject("main").getString("temp")
-            viewHolder.itemTemp.text = "Temperature: $temperatureInfo"
+            var temperatureUnit = weatherDataManager.getUnits(viewHolder.itemTemp.context)
+            temperatureUnit = if (temperatureUnit == "metric") "°C" else "°F"
+            viewHolder.itemTemp.text = "Temperature: $temperatureInfo $temperatureUnit"
 
             val pressureInfo = it.getJSONArray("list").getJSONObject(position).getJSONObject("main").getString("pressure")
             viewHolder.itemPressure.text = "Pressure: $pressureInfo"
 
             val descriptionInfo = it.getJSONArray("list").getJSONObject(position).getJSONArray("weather").getJSONObject(0).getString("description")
             viewHolder.itemDescription.text = "Description: $descriptionInfo"
+
+            val iconInfo = it.getJSONArray("list").getJSONObject(position).getJSONArray("weather").getJSONObject(0).getString("icon")
+            val iconId = viewHolder.itemIcon.resources.getIdentifier("com.example.weatherapp:drawable/ic_$iconInfo", null, null)
+            viewHolder.itemIcon.setImageResource(iconId)
         }
     }
     override fun getItemCount() = 40

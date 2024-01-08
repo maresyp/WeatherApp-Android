@@ -3,7 +3,7 @@
 
     <SwitchPreferenceCompat
         app:key="units"
-        app:title="Use Celsius"/>
+        app:title="Fahrenheit / Celsius"/>
 
     <Preference
         app:key="clearFiles"

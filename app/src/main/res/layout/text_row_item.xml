@@ -42,7 +42,7 @@
     <ImageView
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:id="@+id/forecast_element_image"
+        android:id="@+id/item_element_image"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="@id/item_time_text_view"
         android:layout_marginRight="20dp"/>
